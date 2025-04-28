@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 @Threads(1)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Thread)
-public class onlyOneNotNullBenchmark {
+public class OnlyOneNotNullBenchmark {
     record Car(String suv, String sedan, String estate) {
         static Car XC70() {
             return new Car(null, null, "V60");
@@ -32,18 +32,38 @@ public class onlyOneNotNullBenchmark {
         car = Car.XC70();
     }
 
+    /**
+     * note: xor actually doesn't match the description of exactly one, it matches all uneven amounts
+     */
+    @SuppressWarnings("java:S3878") // array needed to disambiguate between Boolean and boolean
     @Benchmark
     public boolean apacheXor() {
         return BooleanUtils.xor(new boolean[]{car.sedan != null, car.suv != null, car.estate != null});
     }
 
+    /**
+     * note: xor actually doesn't match the description of exactly one, it matches all uneven amounts
+     */
+    @SuppressWarnings("java:S3878") // array needed to disambiguate between Boolean and boolean
     @Benchmark
     public boolean apacheXorAndObjects() {
         return BooleanUtils.xor(new Boolean[]{Objects.nonNull(car.sedan), Objects.nonNull(car.suv), Objects.nonNull(car.estate)});
     }
 
+    @SuppressWarnings("java:S3878") // array needed to disambiguate between Boolean and boolean
     @Benchmark
-    public boolean stream() {
+    public boolean apacheOneHot() {
+        return BooleanUtils.oneHot(new boolean[]{car.sedan != null, car.suv != null, car.estate != null});
+    }
+
+    @SuppressWarnings("java:S3878") // array needed to disambiguate between Boolean and boolean
+    @Benchmark
+    public boolean apacheOnehotAndObjects() {
+        return BooleanUtils.oneHot(new Boolean[]{Objects.nonNull(car.sedan), Objects.nonNull(car.suv), Objects.nonNull(car.estate)});
+    }
+
+    @Benchmark
+    public boolean streamCount() {
         return 1 == Stream.of(car.sedan, car.suv, car.estate)
                 .filter(Objects::nonNull)
                 .count();
@@ -81,7 +101,7 @@ public class onlyOneNotNullBenchmark {
     }
 
     public static void main(String[] args) throws RunnerException {
-        var className = onlyOneNotNullBenchmark.class.getSimpleName();
+        var className = OnlyOneNotNullBenchmark.class.getSimpleName();
         var opt = new OptionsBuilder()
                 .include(".*" + className + ".*")
                 // check it out on https://jmh.morethan.io/

@@ -50,6 +50,11 @@ public class StringUtilsBenchmark {
     }
 
     @Benchmark
+    public boolean isEmpty_GuavaToEmpty() {
+        return Strings.nullToEmpty(stringOrNull).isEmpty();
+    }
+
+    @Benchmark
     public boolean isBlank_String() {
         return stringOrNull != null && stringOrNull.isBlank();
     }
@@ -60,7 +65,7 @@ public class StringUtilsBenchmark {
     }
 
     @Benchmark
-    public boolean isBlank_Guava() {
+    public boolean isBlank_GuavaToEmpty() {
         // guava does not have a dedicated isblank
         return Strings.nullToEmpty(stringOrNull).isBlank();
     }
